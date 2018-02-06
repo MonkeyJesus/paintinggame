@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:task="http://www.springframework.org/schema/task"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xmlns:cache="http://www.springframework.org/schema/cache" xmlns:p="http://www.springframework.org/schema/p"
+	   xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+       http://www.springframework.org/schema/cache
+       http://www.springframework.org/schema/cache/spring-cache.xsd"
+	   default-autowire="byName">
+	<description>Spring配置</description>
+
+	<bean id="propertyConfigurer"  class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:system.properties</value>
+				<value>classpath:redis.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<cache:annotation-driven cache-manager="cacheManager"/>
+
+	<bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxIdle" value="${redis.max_idle}" />
+		<property name="maxTotal" value="${redis.max_active}" />
+		<property name="maxWaitMillis" value="${redis.max_wait}" />
+		<property name="testOnBorrow" value="${redis.test_on_borrow}" />
+	</bean>
+
+	<bean id="connectionFactory"
+		  class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<property name="poolConfig" ref="poolConfig" />
+		<property name="port" value="${redis.port}" />
+		<property name="hostName" value="${redis.host}" />
+		<property name="password" value="${redis.password}" />
+		<property name="timeout" value="${redis.soTimeout}" />
+	</bean>
+
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+		<property name="connectionFactory" ref="connectionFactory" />
+	</bean>
+
+	<!-- 缓存管理器 -->
+	<bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">
+		<property name="caches">
+			<set>
+				<bean class="org.monkeyjesus.manager.SystemRedisCache">
+					<property name="redisTemplate" ref="redisTemplate" />
+					<property name="name" value="service.getCacheNumber" />
+					<property name="timeOut" value="${redis.soTimeout}" />
+				</bean>
+			</set>
+		</property>
+		<!-- <property name="fallbackToNoOpCache" value="false"/> -->
+	</bean>
+
+
+
+	<context:component-scan base-package="org.monkeyjesus"/>
+
+	<bean
+			id="viewResolver"
+
+			class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+
+			p:prefix="/WEB-INF"
+
+			p:suffix=".jsp"
+
+	/>
+</beans>
