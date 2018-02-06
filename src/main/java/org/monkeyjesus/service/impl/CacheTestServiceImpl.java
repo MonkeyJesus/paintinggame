@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class CacheTestServiceImpl implements CacheTestService {
 
     @Override
-    @Cacheable(value = "service.getCacheNumber", key="number")
+    @Cacheable(value = "service.getCacheNumber", key="'number'")
     public String getCacheNumber() {
         return "dfgfd";
     }

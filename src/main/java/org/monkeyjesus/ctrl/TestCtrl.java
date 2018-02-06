@@ -19,7 +19,7 @@ public class TestCtrl {
     @RequestMapping(value = "/aa")
     @ResponseBody
     public String getInteger(){
-        return cacheTestService.getCacheNumber().toString();
+        return cacheTestService.getCacheNumber();
     }
 
 
